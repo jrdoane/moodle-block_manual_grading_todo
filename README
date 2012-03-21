@@ -1,7 +1,10 @@
 moodle-block_manual_grading_todo
 
-Sponsored by:
+Maintained by:
     Virtual Learning Academy Charter School: http://www.vlacs.org
+        Developers: Jon Doane <jdoane@vlacs.org>
+                    Dave Zaharee <dzaharee@vlacs.org>
+                    Matt Oquist <moquist@vlacs.org>
 
 Supported Moodle versions:
     * 1.9.5+ (Build: 20090701)
@@ -11,12 +14,15 @@ Introduction:
     gradable assessments in their course (this currently includes course modules
     from the quiz and assignment modules.)
 
+    This is primarily useful in institutions/courses with rolling enrollments,
+    when the teacher doesn't know that a student may have submitted new work.
+
 Installation:
     Copy the contents of the github tree directly into
     /path/to/moodle/blocks/block_manual_grading_todo and run the admin/index.php
     script from your web browser. Example: http://www.somemoodle.org/admin/
-    Remember, after installing the block to add the block to the courses you
-    would like to include it in.
-    
+
+    After you install, remember to add the block everywhere you want to see it!
+
 Jon Doane <jdoane@vlacs.org>
 Wed Mar 21 15:41:29 EDT 2012
