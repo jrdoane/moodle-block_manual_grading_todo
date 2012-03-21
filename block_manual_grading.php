@@ -23,7 +23,8 @@ class block_manual_grading extends block_base {
 
     function init() {
         global $CFG, $USER;
-        $this->title = 'Manual Grading';
+        # TODO: I18N all strings...
+        $this->title = 'Manual Grading To Do';
         $this->version = 2010021200;
         $this->cron = VLA_BLOCK_CRON_INTERVAL;
     }
