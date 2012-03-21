@@ -44,14 +44,12 @@ class quiz_report extends quiz_default_report {
 
         add_to_log($course->id, '', 'block_manual_grading_todo', qualified_me(), '', '', $USER->id);
 
-        if (is_object($cm) and is_object($course) and is_object($quiz)) {
-            $this->print_header_and_tabs($cm, $course, $quiz, $reportmode="grading");
-        } else {
-            $strquizzes = get_string("modulenameplural", "quiz");
-            print_header_simple(format_string($course->fullname), "",
-                mgtl_anchor($strquizzes, "{$CFG->wwwroot}/mod/quiz/index.php?id=$course->id"),
-                '', '', true);
-        }
+        $nav = array(
+            array(
+                'name' => mgtl_get_string('manual_grading_todo')
+            )
+        );
+        print_header($course->fullname, mgtl_get_string('manual_grading_todo'), build_navigation($nav));
 
         if (!empty($questionid)) {
             if (! $question = get_record('question', 'id', $questionid)) {
