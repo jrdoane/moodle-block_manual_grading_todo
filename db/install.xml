@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="manual_grading" COMMENT="Default comment for manual_grading, please edit me">
+    <TABLE NAME="manual_grading_todo_cache" COMMENT="Default comment for manual_grading, please edit me">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="courseid"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="Course ID from the course table." PREVIOUS="id" NEXT="timestamp"/>

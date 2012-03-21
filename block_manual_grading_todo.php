@@ -14,32 +14,20 @@
 defined('MOODLE_INTERNAL') or die("Direct access to this location is not allowed.");
 
 global $CFG;
-require_once($CFG->dirroot.'/vlacs/lib.php');
+require_once(dirname(__FILE__) . '/lib.php');
 
 /*
  * Block object class for VLACS
  */
-class block_manual_grading extends block_base {
+class block_manual_grading_todo extends block_base {
 
     function init() {
         global $CFG, $USER;
-        $this->title = 'Manual Grading';
-        $this->version = 2010021200;
-        $this->cron = VLA_BLOCK_CRON_INTERVAL;
-    }
-
-    function anchor($text, $url, $attr=array()) {
-        $str = "<a href=\"$url\"";
-        foreach($attr as $key => $a) {
-            $str .= " $key=\"" . htmlspecialchars($a) . "\"";
-        }
-        $str .= ">$text</a>";
-        return $str;
+        $this->title = mgtl_get_string('manual_grading_todo');
+        $this->version = 2012032100;
     }
 
     function get_content() {
-
-
         // We don't care about the rest of this!!!
         global $CFG, $USER, $COURSE, $VSA_STATUSIDS, $VLA;
         #$this->content = new stdClass; $this->content->items = array(); $this->content->icons = array(); $this->content->footer = '';
@@ -68,15 +56,16 @@ class block_manual_grading extends block_base {
                 return $this->content;
             }
 
-            $this->content->text .= "<p>My courses' manual grading</p>\n<ul>\n";
+            $txt = mgtl_get_string('mycoursesmgtl');
+            $this->content->text .= "<p>$txt</p>\n<ul>\n";
             foreach($courses as $c) {
-                $gurl = new moodle_url("{$CFG->wwwroot}/blocks/manual_grading/report.php"); // grading url
+                $gurl = new moodle_url("{$CFG->wwwroot}/blocks/manual_grading_todo/report.php"); // grading url
 
                 $gurl->param('action', 'viewquizzes');
                 $gurl->param('mode', 'grading');
                 $gurl->param('c', $c->id);
 
-                $this->content->text .= "<li>".$this->anchor($c->fullname, $gurl->out())."</li>\n";
+                $this->content->text .= "<li>".mgtl_anchor($c->fullname, $gurl->out())."</li>\n";
             }
             $this->content->text .= "</ul><br />\n";
         }
@@ -84,11 +73,11 @@ class block_manual_grading extends block_base {
         // Otherwise just show one MGTL. :)
         if ($COURSE->id != SITEID and has_capability('moodle/grade:edit', $context)) {
             # Manual grading to-do list
-            $url = $CFG->wwwroot.'/blocks/manual_grading/report.php';
+            $url = $CFG->wwwroot.'/blocks/manual_grading_todo/report.php';
             $url = $url."?c={$COURSE->id}";
             $url .= '&mode=grading&action=viewquizzes';
-            $txt = 'Manual Grading List';
-            $link = "<a target=\"_blank\" href=\"$url\">$txt</a>";
+            $txt = mgtl_get_string('mgtl_list');
+            $link = mgtl_anchor($txt, $url, array('target' => '_blank'));
             $this->content->text .= "$link<br />";
         }
 
@@ -104,16 +93,5 @@ class block_manual_grading extends block_base {
 
         return $this->content;
     }
-
-    function cron() {
-        global $CFG, $USER, $COURSE, $db;
-        vlacs_debug(__FUNCTION__, VLA_DBG_ENTRY);
-
-        vlacs_rename_courses(VLA_CMD_COURSES_RENAME_NOW);
-
-        vlacs_debug(__FUNCTION__, VLA_DBG_EXIT);
-        return true;
-    }
-
 } // End of the block_manual_grading class
 ?>

@@ -8,6 +8,8 @@
 
 define('MGTL_QUIZ', 'QUIZ');
 define('MGTL_ASSIGNMENT', 'ASSIGNMENT');
+define('MGTL_SORT_ITEMNAME', 'itemname');
+define('MGTL_SORT_TIMEFINISHED', 'timefinished');
 
 // Flow of the file:
 //     Get variables, run essential queries
@@ -21,6 +23,7 @@ require_once($CFG->dirroot . "/mod/quiz/editlib.php");
 require_once($CFG->libdir . '/tablelib.php');
 require_once($CFG->libdir . '/weblib.php');
 require_once(dirname(__FILE__) . '/lib.php');
+require_once(dirname(dirname(dirname(__FILE__))) . '/lib.php');
 
 /**
  * Quiz report to help teachers manually grade quiz questions that need it.
@@ -37,16 +40,17 @@ class quiz_report extends quiz_default_report {
 
         $action = optional_param('action', 'viewquestions', PARAM_ALPHA);
         $questionid = optional_param('questionid', 0, PARAM_INT);
+        $sort = optional_param('sort', MGTL_SORT_TIMEFINISHED, PARAM_ALPHA);
 
-        add_to_log($course->id, '', 'VLACS manual grading to-do list', qualified_me(), '', '', $USER->id);
+        add_to_log($course->id, '', 'block_manual_grading_todo', qualified_me(), '', '', $USER->id);
 
         if (is_object($cm) and is_object($course) and is_object($quiz)) {
             $this->print_header_and_tabs($cm, $course, $quiz, $reportmode="grading");
         } else {
             $strquizzes = get_string("modulenameplural", "quiz");
             print_header_simple(format_string($course->fullname), "",
-                                "<a href=\"{$CFG->wwwroot}/mod/quiz/index.php?id=$course->id\">$strquizzes</a>",
-                                '', '', true);
+                mgtl_anchor($strquizzes, "{$CFG->wwwroot}/mod/quiz/index.php?id=$course->id"),
+                '', '', true);
         }
 
         if (!empty($questionid)) {
@@ -120,7 +124,7 @@ class quiz_report extends quiz_default_report {
 
         switch($action) {
             case 'viewquizzes':
-                $this->view_quizzes($course);
+                $this->view_quizzes($course, $sort);
                 break;
             default:
                 print "error: unknown action $action";
@@ -133,16 +137,17 @@ class quiz_report extends quiz_default_report {
      * Prints a table containing all quizzes with manually graded questions in the course
      *
      * @param object $course Course object of the current course
+     * @param string $sort is a sort string on which field to sort.
      * @return boolean
      **/
-    function view_quizzes($course) {
+    function view_quizzes($course, $sort='') {
         global $CFG, $QTYPE_MANUAL;
 
-        $str_itemname = 'Item Name';
-        $str_student = 'Student';
-        $str_submissiontime = 'Submission Time';
-        $str_tableheading = 'Items Requiring Manual Grading';
-        $str_extrainfo = 'Extra submission info';
+        $str_itemname = mgtl_get_string('itemname');
+        $str_student = mgtl_get_string('student');
+        $str_submissiontime = mgtl_get_string('submissiontime');
+        $str_tableheading = mgtl_get_string('itemsrequiredgrading');
+        $str_extrainfo = mgtl_get_string('extrasubmissioninfo');
 
         $users = get_course_students($course->id);
 
@@ -151,7 +156,6 @@ class quiz_report extends quiz_default_report {
             return true;
         }
 
-        # setup the table
         $table = new stdClass;
         $table->head = array($str_itemname, $str_student, $str_submissiontime, $str_extrainfo);
         $table->align = array("left", "left", "right");
@@ -159,6 +163,30 @@ class quiz_report extends quiz_default_report {
         $table->width = "20%";
         $table->size = array("*", "*", "*");
         $table->data = array();
+
+        // Setup sort links.
+        $sort_opts = array(
+            MGTL_SORT_ITEMNAME => mgtl_get_string('assessmentname'),
+            MGTL_SORT_TIMEFINISHED => mgtl_get_string('timefinished')
+        );
+        $sorturl = new moodle_url(qualified_me());
+        $str_sorted = '<small><small>('.mgtl_get_string('sorted').')</small></small>';
+
+        if($sort != MGTL_SORT_ITEMNAME) {
+            $sorturl->param('sort', MGTL_SORT_ITEMNAME);
+            $table->head[0] = mgtl_anchor($table->head[0], $sorturl->out());
+        } else {
+            $table->head[0] .= "<br />{$str_sorted}";
+        }
+
+        if($sort != MGTL_SORT_TIMEFINISHED) {
+            $sorturl->param('sort', MGTL_SORT_TIMEFINISHED);
+            $table->head[2] = mgtl_anchor($table->head[2], $sorturl->out());
+        } else {
+            $table->head[2] .= "<br />{$str_sorted}";
+        }
+
+        # setup the table
 
         # quizzes and attempts are merged in $work
         $work = array();
@@ -173,7 +201,7 @@ class quiz_report extends quiz_default_report {
         $events_graded .= ','.QUESTION_EVENTCLOSEANDGRADE;
         $events_graded .= ','.QUESTION_EVENTMANUALGRADE;
 
-        $min_time = get_field('manual_grading', 'timestamp', 'courseid', $course->id);
+        $min_time = get_field('manual_grading_todo_cache', 'timestamp', 'courseid', $course->id);
         if (!$min_time) { $min_time = 0; }
 
         $sql = "
@@ -212,6 +240,7 @@ class quiz_report extends quiz_default_report {
                     'attempts' => array(),
                     'graded_attempts' => array(),
                     'type' => MGTL_QUIZ,
+                    'sort' => $sort,
                 );
             }
             switch (intval($qa->event)) {
@@ -275,6 +304,7 @@ class quiz_report extends quiz_default_report {
                     'name' => $a->name,
                     'attempts' => array(),
                     'type' => MGTL_ASSIGNMENT,
+                    'sort' => $sort
                 );
                 $cm = get_coursemodule_from_instance('assignment', $a->id, $a->course);
                 $a->cmid = $cm->id;
@@ -336,7 +366,7 @@ class quiz_report extends quiz_default_report {
                     $quiz_attempt_url->param('attempt', $a->attemptid);
                     $attempturl = $quiz_attempt_url->out();
                     $displayed_attempts[$a->uniqueid] = true;
-                    $extrainfo = 'Quiz attempt';
+                    $extrainfo = mgtl_get_string('quizattempt');
                 }
 
                 if ($w->type == MGTL_ASSIGNMENT) {
@@ -344,9 +374,9 @@ class quiz_report extends quiz_default_report {
                     $assignment_attempt_url->param('userid', $a->userid);
                     $attempturl = $assignment_attempt_url->out();
                     if($a->updatedsubmission == 't') {
-                        $extrainfo = 'Updated assignment submission';
+                        $extrainfo = mgtl_get_string('updatedassignmentsubmission');
                     } else {
-                        $extrainfo = 'New assignment submission';
+                        $extrainfo = mgtl_get_string('newassignmentsubmission');
                     }
                 }
 
@@ -370,20 +400,20 @@ class quiz_report extends quiz_default_report {
         if (count($table->data)) {
             print_table($table);
         } else {
-            print "<center><big>None!</big></center>";
+            print "<center><big>".mgtl_get_string('none')."</big></center>";
         }
 
         # save the new min time
         if (!isset($min_time)) { $min_time = time(); }
-        if (record_exists('manual_grading', 'courseid', $course->id)) {
-            set_field('manual_grading', 'timestamp', $min_time, 'courseid', $course->id);
+        if (record_exists('manual_grading_todo_cache', 'courseid', $course->id)) {
+            set_field('manual_grading_todo_cache', 'timestamp', $min_time, 'courseid', $course->id);
         } else {
             $manual_grading = (object) array(
                 'courseid' => $course->id,
                 'timestamp' => $min_time,
                 'timecreated' => time(),
             );
-            insert_record('manual_grading', $manual_grading);
+            insert_record('manual_grading_todo_cache', $manual_grading);
         }
 
         return true;
