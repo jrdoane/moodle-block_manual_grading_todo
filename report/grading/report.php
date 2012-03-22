@@ -341,8 +341,8 @@ class quiz_report extends quiz_default_report {
             $options = 'menubar,location,scrollbars,resizable,width=780,height=500';
 
             // To deturance against using the old all attempts link. --jdoane
-            //$link = link_to_popup_window($url, $w->name, $w->name, 550, 750, 'Manual Grading: '.$w->name, $options, true);
-            $link = $w->name;
+            $link = link_to_popup_window($url, $w->name, $w->name, 550, 750, 'Manual Grading: '.$w->name, $options, true);
+            //$link = $w->name;
 
             $displayed_attempts = array();
             $first = true;
