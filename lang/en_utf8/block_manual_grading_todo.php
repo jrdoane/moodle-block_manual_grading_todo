@@ -20,3 +20,4 @@ $string['sorted'] = 'Sorted';
 $string['assessmentname'] = 'item name';
 $string['timefinished'] = 'submission completion date';
 $string['currentlysortedby'] = 'Currently sorted by';
+$string['mycoursesmgtl'] = 'My courses manual grading to-do list';
