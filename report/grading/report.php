@@ -405,7 +405,7 @@ class quiz_report extends quiz_default_report {
         }
 
         # save the new min time
-        if (isset($min_time)) {
+        if (!empty($min_time)) {
             if (record_exists('manual_grading_todo_cache', 'courseid', $course->id)) {
                 set_field('manual_grading_todo_cache', 'timestamp', $min_time, 'courseid', $course->id);
             } else {
