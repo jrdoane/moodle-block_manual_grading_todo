@@ -323,11 +323,14 @@ class quiz_report extends quiz_default_report {
         $quiz_url->param('mode', 'grading');
         $assignment_url = new moodle_url("{$CFG->wwwroot}/mod/assignment/submissions.php");
         $assignment_url->param('sort', 'status');
+        $min_time = 0;
 
         foreach ($work as $w) {
             $url = '';
             $attempturl = '';
-            if (!isset($min_time)) { $min_time = reset($w->attempts)->timefinish; }
+            $mtc = reset($w->attempts)->timefinish;
+            if (empty($min_time)) { $min_time = $mtc; }
+            else { $min_time = $min_time > $mtc ? $mtc : $min_time; }
             switch ($w->type) {
             case MGTL_QUIZ:
                 $quiz_url->param('q', $w->id);
