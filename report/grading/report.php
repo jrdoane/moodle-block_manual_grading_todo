@@ -402,16 +402,17 @@ class quiz_report extends quiz_default_report {
         }
 
         # save the new min time
-        if (!isset($min_time)) { $min_time = time(); }
-        if (record_exists('manual_grading_todo_cache', 'courseid', $course->id)) {
-            set_field('manual_grading_todo_cache', 'timestamp', $min_time, 'courseid', $course->id);
-        } else {
-            $manual_grading = (object) array(
-                'courseid' => $course->id,
-                'timestamp' => $min_time,
-                'timecreated' => time(),
-            );
-            insert_record('manual_grading_todo_cache', $manual_grading);
+        if (isset($min_time)) {
+            if (record_exists('manual_grading_todo_cache', 'courseid', $course->id)) {
+                set_field('manual_grading_todo_cache', 'timestamp', $min_time, 'courseid', $course->id);
+            } else {
+                $manual_grading = (object) array(
+                    'courseid' => $course->id,
+                    'timestamp' => $min_time,
+                    'timecreated' => time(),
+                );
+                insert_record('manual_grading_todo_cache', $manual_grading);
+            }
         }
 
         return true;
@@ -427,10 +428,10 @@ class quiz_report extends quiz_default_report {
         global $CFG;
 
         if (!$state = get_record_sql("SELECT state.id, state.event FROM
-                                        {$CFG->prefix}question_states state, {$CFG->prefix}question_sessions sess
-                                        WHERE sess.newest = state.id AND
-                                        sess.attemptid = $attempt->uniqueid AND
-                                        sess.questionid = $question->id")) {
+        {$CFG->prefix}question_states state, {$CFG->prefix}question_sessions sess
+        WHERE sess.newest = state.id AND
+        sess.attemptid = $attempt->uniqueid AND
+        sess.questionid = $question->id")) {
             error('Could not find question state');
         }
 
