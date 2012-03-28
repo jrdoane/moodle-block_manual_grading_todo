@@ -279,9 +279,13 @@ class quiz_report extends quiz_default_report {
                 c.instanceid = {$course->id} AND
                 r.shortname = 'student' AND
                 a.course = {$course->id} AND
+                s.timemodified > 0 AND
                 (
                     s.timemodified > s.timemarked OR
                     s.grade = -1
+                ) AND (
+                    a.assignmenttype != 'upload' OR
+                    s.data2 = 'submitted'
                 )
         ";
         $assignments = get_records_sql($sql);
