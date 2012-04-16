@@ -341,7 +341,7 @@ class quiz_report extends quiz_default_report {
                 $url = $quiz_url->out();
                 break;
             case MGTL_ASSIGNMENT:
-                $assignment_url->param('a', $w->assignment);
+                $assignment_url->param('a', $w->id);
                 $url = $assignment_url->out();
                 break;
             }
