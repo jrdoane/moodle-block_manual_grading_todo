@@ -266,10 +266,10 @@ class quiz_report extends quiz_default_report {
 
         # get the assignments
         $sql = "
-            SELECT a.id, a.name, s.timemodified AS timefinish, u.id AS userid, u.firstname,
+            SELECT s.id, s.assignment, a.name, s.timemodified AS timefinish, u.id AS userid, u.firstname,
                 u.lastname, a.course, (s.timemodified > s.timemarked AND s.grade > -1) AS updatedsubmission
-            FROM {$CFG->prefix}assignment a
-                JOIN {$CFG->prefix}assignment_submissions s ON a.id = s.assignment
+            FROM {$CFG->prefix}assignment_submissions s
+                JOIN {$CFG->prefix}assignment a ON a.id = s.assignment
                 JOIN {$CFG->prefix}user u ON u.id = s.userid
                 JOIN {$CFG->prefix}role_assignments ra ON u.id = ra.userid
                 JOIN {$CFG->prefix}context c ON c.id = ra.contextid
@@ -298,20 +298,20 @@ class quiz_report extends quiz_default_report {
 
         # group the attempts by assignment while adding to the work array
         foreach ($assignments as $a) {
-            $key = "a$a->id";
+            $key = "a$a->assignment";
             if (!isset($work[$key])) {
                 # we don't need graded_attempts for assignments
                 $work[$key] = (object) array(
-                    'id' => $a->id,
+                    'id' => $a->assignment,
                     'name' => $a->name,
                     'attempts' => array(),
                     'type' => MGTL_ASSIGNMENT,
                     'sort' => $sort
                 );
-                $cm = get_coursemodule_from_instance('assignment', $a->id, $a->course);
-                $a->cmid = $cm->id;
-                $work[$key]->attempts[] = $a;
             }
+            $cm = get_coursemodule_from_instance('assignment', $a->assignment, $a->course);
+            $a->cmid = $cm->id;
+            $work[$key]->attempts[] = $a;
         }
 
         # sort the quizzes/assignments by earliest ungraded submission
@@ -341,15 +341,13 @@ class quiz_report extends quiz_default_report {
                 $url = $quiz_url->out();
                 break;
             case MGTL_ASSIGNMENT:
-                $assignment_url->param('a', $w->id);
+                $assignment_url->param('a', $w->assignment);
                 $url = $assignment_url->out();
                 break;
             }
             $options = 'menubar,location,scrollbars,resizable,width=780,height=500';
 
-            // To deturance against using the old all attempts link. --jdoane
             $link = link_to_popup_window($url, $w->name, $w->name, 550, 750, 'Manual Grading: '.$w->name, $options, true);
-            //$link = $w->name;
 
             $displayed_attempts = array();
             $first = true;
